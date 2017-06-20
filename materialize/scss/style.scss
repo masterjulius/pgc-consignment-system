@@ -1,0 +1,76 @@
+/*!
+ * Author: PPDO-IT Dev Team
+ * Author URI: http://www.cagayan.gov.ph
+ */
+
+/*** Consignment System ***/
+body {
+  
+  /** This is the login css design */
+  &.home-index {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    background: #fff;
+  }
+
+  .list-trash-link-div {
+
+    h5 {
+      text-align: right !important;
+      a {
+        font-size: 1.3rem;
+      }
+
+    }
+
+  }
+
+  header, main, footer {
+    padding-left: 300px;
+  }
+
+  @media only screen and (max-width : 992px) {
+    header, main, footer {
+      padding-left: 0;
+    }
+  }
+  
+  .sign-in-container {
+    
+    main {
+      flex: 1 0 auto;
+    }
+
+    .input-field input {
+
+      &[type=date]:focus + label, &[type=text]:focus + label, &[type=email]:focus + label, &[type=password]:focus + label {
+        color: #e91e63;
+      }
+      &[type=date]:focus, &[type=text]:focus, &[type=email]:focus, &[type=password]:focus {
+        border-bottom: 2px solid #e91e63;
+        box-shadow: none;
+      }
+
+    }
+
+  }
+
+  .cnsgnmnt-Sidenav {
+
+    ul {
+
+      li {
+
+        i {
+          margin-right: 0 !important;
+          font-size: 15px;
+        }
+
+      }
+
+    }
+
+  }
+
+}
