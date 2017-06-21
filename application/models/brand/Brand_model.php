@@ -1,7 +1,74 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 	
-	class Glossary_brand_model extends CI_Model {
+	class Brand_model extends CI_Model {
+
+		public function get_all_brand( $args = null, $isArray = FALSE ) {
+
+			if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
+
+				if ( null != $args ) {
+
+					if ( is_array( $args ) ) {
+
+						$this->db->select('brand_id, brand_name, brand_description, brand_created_date, brand_created_by');
+						$query = $this->db->get( 'tbl_item_brand' );
+
+						if ( !empty( $args ) ) {
+
+							if ( array_key_exists( 'limit', $args ) && array_key_exists( 'offset', $args ) && !array_key_exists( 'key', $args ) ) {
+
+								$this->db->select('brand_id, brand_name, brand_description, brand_created_date, brand_created_by');
+								$query = $this->db->get( 'tbl_item_brand', $args['limit'], $args['offset'] );
+
+							} else if ( array_key_exists( 'limit', $args ) && array_key_exists( 'offset', $args ) && array_key_exists( 'key', $args ) ) {
+
+								$this->db->select('brand_id, brand_name, brand_description, brand_created_date, brand_created_by');
+								$this->db->like( 'brand_name', $args['key'] );
+								$this->db->like( 'brand_description', $args['key'] );
+								$query = $this->db->get( 'tbl_item_brand', $args['limit'], $args['offset'] );
+
+							}
+
+						}
+
+						// run the query
+						if ( $query ) {
+
+							if ( $query->num_rows() > 0 ) {
+								$returnDatas = array();
+								foreach ( $query->result() as $row ) {
+									
+									$objectDatas = (object) array(
+										'brand_id'				=>	$row->brand_id,
+										'brand_name'			=>	$row->brand_name,
+										'brand_description'		=>	$row->brand_description,
+										'brand_created_date'	=>	$row->brand_created_date,
+										'brand_created_by'		=>	$row->brand_created_by,
+									);
+									array_push( $returnDatas , $objectDatas );
+
+								}
+
+								if ( $isArray === FALSE ) {
+									$returnDatas = (object) $returnDatas;
+								}
+
+								return $returnDatas;
+
+							}
+
+							return FALSE;
+
+						}
+
+					}
+
+				}
+
+			}
+
+		}
 
 		public function save_brand( $array_values ) {
 
@@ -13,6 +80,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 						// set the date meta info
 	        			$current_timestamp = date( "Y-m-d H:i:s" );
+	        			$current_user_session_id = $this->session->cnsgnmnt_sess_prefix_user_id;
 
 						if ( array_key_exists( 'brand_id', $array_values ) ) {
 
@@ -24,6 +92,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 							$data = array(
 							    'brand_name'		=>	$array_values['brand_name'],
 							    'brand_description'	=>	$array_values['brand_description'],
+							    'brand_edited_by'	=>	$current_user_session_id
 							);
 
 							$this->db->where( 'brand_id', $array_values['brand_id'] );
@@ -65,6 +134,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 							$data = array(
 							    'brand_name'		=>	$array_values['brand_name'],
 							    'brand_description'	=>	$array_values['brand_description'],
+							    'brand_created_by'	=>	$current_user_session_id
 							);
 
 							$query = $this->db->insert( 'tbl_item_brand', $data );

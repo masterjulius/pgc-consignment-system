@@ -41,7 +41,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 					$brand_remarks = $this->input->post( 'remarks' );
 
 					// load the glossary model
-					$this->load->model( 'glossary/Glossary_brand_model', 'glossary_brnd_mdl' );
+					$this->load->model( 'brand/Brand_model', 'brnd_mdl' );
 					$array_save_datas = array(
 						'brand_name'		=>	$brand_name,
 						'brand_description'	=>	$brand_remarks
@@ -51,7 +51,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 						$array_save_datas['brand_id'] = $brand_id;
 
 					}
-					$result = $this->glossary_brnd_mdl->save_brand( $array_save_datas );
+					$result = $this->brnd_mdl->save_brand( $array_save_datas );
 					if ( $result != FALSE ) {
 
 						$target_url = $this->input->post( 'target_url' );

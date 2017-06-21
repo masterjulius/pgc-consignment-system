@@ -37,9 +37,14 @@ class Administrator extends CI_Controller {
 
 	}
 
-	/** ----------------------------------------------------------------------
-	* |							Glossary Group 								 |
-	* ------------------------------------------------------------------------
+	/** ----------------------------------------------------------------------------------
+	* |										Glossary Group 								 |
+	* ------------------------------------------------------------------------------------
+	*/
+
+	/** -------------------------------------------------------------------------
+	* |							Glossary Controller 							|
+	* ---------------------------------------------------------------------------
 	*/
 
 	public function glossary( $action = 'default', $glossary_id = null ) {
@@ -54,35 +59,6 @@ class Administrator extends CI_Controller {
 				$this->load->view( 'header', $data );
 				$this->load->view( 'sidebar' );
 				$this->load->view( 'dashboard/glossary/Glossary_add_view' );
-				$this->load->view( 'footer' );
-
-			} else if ( $action === 'brand-list' || $action === 'list-brand' || $action === 'brandlist' || $action === 'listbrand' ) {
-
-				$data['page_title'] = 'Brands';
-				$data['nav_title'] = 'Brand List';
-				$data['add_new_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'new-brand' );
-				$this->load->view( 'header', $data );
-				$this->load->view( 'sidebar' );
-				$this->load->view( 'dashboard/sub_navbar_view' );
-				$this->load->view( 'dashboard/glossary/Glossary_brands_view' );
-				$this->load->view( 'footer' );
-
-			} else if ( $action === 'newbrand' || $action === 'addbrand' || $action === 'new-brand' || $action === 'add-brand' ) {
-
-				// new / add brand
-				$data['page_title'] = 'Add Brand';
-				$this->load->view( 'header', $data );
-				$this->load->view( 'sidebar' );
-				$this->load->view( 'dashboard/glossary/Glossary_add_brand_view' );
-				$this->load->view( 'footer' );
-
-			} else if ( $action === 'editbrand' || $action === 'updatebrand' || $action === 'edit-brand' || $action === 'update-brand' ) {
-
-				// new / add brand
-				$data['page_title'] = 'Edit Brand';
-				$this->load->view( 'header', $data );
-				$this->load->view( 'sidebar' );
-				$this->load->view( 'dashboard/glossary/Glossary_edit_brand_view' );
 				$this->load->view( 'footer' );
 
 			} else {
@@ -101,6 +77,69 @@ class Administrator extends CI_Controller {
 		}		
 
 	}
+
+	/** -------------------------------------------------------------------------
+	* |								Brand Controller 							|
+	* ---------------------------------------------------------------------------
+	*/
+
+	public function brand( $action = 'default', $brand_id = null ) {
+
+		if ( $action === 'new' || $action === 'new-brand' || $action === 'newbrand' || $action === 'add-brand' || $action === 'addbrand' ) {
+
+			// new / add brand
+			$data['page_title'] = 'Add Brand';
+			$this->load->view( 'header', $data );
+			$this->load->view( 'sidebar' );
+			$this->load->view( 'dashboard/brand/Brand_add_view' );
+			$this->load->view( 'footer' );
+
+		} else if ( $action === 'edit' || $action === 'editbrand' || $action === 'updatebrand' || $action === 'edit-brand' || $action === 'update-brand' ) {
+
+			// new / add brand
+			$data['page_title'] = 'Edit Brand';
+			$this->load->view( 'header', $data );
+			$this->load->view( 'sidebar' );
+			$this->load->view( 'dashboard/brand/Brand_edit_view' );
+			$this->load->view( 'footer' )	;
+
+		} else {
+
+			// This is the display of list of brands
+			$data['page_title'] = 'Brands';
+			$data['nav_title'] = 'Brand List';
+			$data['add_new_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'new-brand' );
+
+			$this->load->model( 'brand/Brand_model', 'brnd_mdl' );
+
+			// pagination
+			// i will initialize the pagination first
+			$this->load->library('pagination');
+
+			$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'page/' );
+			$config['total_rows'] = count( $this->brnd_mdl->get_all_brand() );
+			$config['per_page'] = 10;
+			$config['num_links'] = 20;
+
+			$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
+
+			$data['brand_metadata'] = $this->brnd_mdl->get_all_brand( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset ) );
+
+			$this->load->view( 'header', $data );
+			// $this->load->view( 'sidebar' );
+			$this->load->view( 'dashboard/sub_navbar_view' );
+			$this->load->view( 'dashboard/brand/Brands_view' );
+			$this->load->view( 'footer' );
+
+		}
+
+	}
+
+
+	/** --------------------------------------------------------------------------------------
+	* |										End Glossary Group 								 |
+	* ----------------------------------------------------------------------------------------
+	*/
 
 
 	/** ---------------------------------------------------------------------------------------------
