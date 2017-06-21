@@ -43,6 +43,27 @@ class Form_controller extends CI_Controller {
 	        	
 	        	if ( $user_result != NULL ) {
 
+	        		$ip_address = $this->input->ip_address();
+	        		$user_agent = $this->input->user_agent();
+
+	        		$this-
+	        		$meta_value = '{
+	        			"ip_address" : "'. $ip_address .'",
+	        			"user_agent" : "'. $user_agent .'",
+	        		}';
+
+	        		$user_meta = array(
+	        			'meta_user_id'	=>	$user_result->user_id,
+	        			'meta_key_id'	=>	$this->ext_meta->get_meta_key_info( '_last_login' )->key_id,
+	        			'meta_value'	=>	$meta_value,
+	        		);
+
+	        		if ( $this->db->insert( 'tbl_usermeta', $user_meta ) ) {
+
+
+
+	        		}
+
 	        		$this->user_security->register_session_data( $user_result, 'cnsgnmnt_sess_prefix_' );
 	        		$target_url = !empty($this->input->post('target_url')) ? $this->input->post('target_url') : '/Administrator/index/';
 	        		redirect( $target_url );
