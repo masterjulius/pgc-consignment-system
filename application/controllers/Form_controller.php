@@ -43,30 +43,32 @@ class Form_controller extends CI_Controller {
 	        	
 	        	if ( $user_result != NULL ) {
 
+	        		// set the date meta info
+	        		$current_timestamp = date( "Y-m-d H:i:s" );
+
 	        		$ip_address = $this->input->ip_address();
 	        		$user_agent = $this->input->user_agent();
 
-	        		$this-
-	        		$meta_value = '{
-	        			"ip_address" : "'. $ip_address .'",
-	        			"user_agent" : "'. $user_agent .'",
-	        		}';
+	        		$user_id = $user_result['user_id'];
+	        		$user_name = $user_result['username'];
+
+	        		$meta_value = '{ "ip_address" : "'. $ip_address .'", "user_agent" : "'. $user_agent .'", "session_datas" : { "session_id" : '. $user_id .', "user_name"	: "'. $user_name .'" }, "date" : "'. $current_timestamp .'" }';
 
 	        		$user_meta = array(
-	        			'meta_user_id'	=>	$user_result->user_id,
+	        			'meta_user_id'	=>	$user_id,
 	        			'meta_key_id'	=>	$this->ext_meta->get_meta_key_info( '_last_login' )->key_id,
 	        			'meta_value'	=>	$meta_value,
 	        		);
 
 	        		if ( $this->db->insert( 'tbl_usermeta', $user_meta ) ) {
 
+	        			$this->user_security->register_session_data( $user_result, 'cnsgnmnt_sess_prefix_' );
+		        		$target_url = !empty($this->input->post('target_url')) ? $this->input->post('target_url') : '/Administrator/index/';
+		        		redirect( $target_url );
 
-
+	        		} else {
+	        			error_log();
 	        		}
-
-	        		$this->user_security->register_session_data( $user_result, 'cnsgnmnt_sess_prefix_' );
-	        		$target_url = !empty($this->input->post('target_url')) ? $this->input->post('target_url') : '/Administrator/index/';
-	        		redirect( $target_url );
 
 	        	} else {
 

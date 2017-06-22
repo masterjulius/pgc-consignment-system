@@ -36,8 +36,9 @@ $arr_datas = (array) $brand_metadata;
 								<td><?= $this->ext_meta->get_user_meta_data( $value->brand_created_by, 'user_name' ) ?></td>
 					<?php
 						$action_url = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . $this->uri->segment(3) );
+						$delete_url = $action_url . 'delete/' . $brand_id; 
 					?>			
-								<td><a href="<?php echo $action_url . 'edit/' . $brand_id; ?>">Edit</a> | <a href="<?php echo $action_url . 'delete/' . $brand_id; ?>">Delete</a></td>
+								<td><a href="<?php echo $action_url . 'edit/' . $brand_id; ?>">Edit</a> | <a href="<?php echo $delete_url; ?>" class="red-text" onclick="event.preventDefault();if(confirm('Are you sure you want to delete this role?')==true){window.location.href='<?php echo $delete_url; ?>';}">Delete</a></td>
 							</tr>
 					<?php endforeach; ?>		
 						</tbody>

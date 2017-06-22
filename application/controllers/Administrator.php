@@ -85,6 +85,9 @@ class Administrator extends CI_Controller {
 
 	public function brand( $action = 'default', $brand_id = null ) {
 
+		$config = $this->_init_pagination_config();
+		$this->load->model( 'brand/Brand_model', 'brnd_mdl' );
+
 		if ( $action === 'new' || $action === 'new-brand' || $action === 'newbrand' || $action === 'add-brand' || $action === 'addbrand' ) {
 
 			// new / add brand
@@ -96,12 +99,102 @@ class Administrator extends CI_Controller {
 
 		} else if ( $action === 'edit' || $action === 'editbrand' || $action === 'updatebrand' || $action === 'edit-brand' || $action === 'update-brand' ) {
 
-			// new / add brand
-			$data['page_title'] = 'Edit Brand';
+			if ( null != $brand_id || '' != $brand_id ) {
+
+				// new / add brand
+				$result_data = $this->brnd_mdl->get_single_brand( $brand_id );
+
+				$data['brand_metadata'] = $result_data;
+				//echo $data['brand_metadata'];
+				$data['page_title'] = 'Edit Brand';
+				$this->load->view( 'header', $data );
+				$this->load->view( 'sidebar' );
+				$this->load->view( 'dashboard/brand/Brand_edit_view' );
+				$this->load->view( 'footer' );
+
+
+			}
+
+		} else if ( $action === 'trash' ) {
+
+			// Trash / Recycle view
+			$data['page_title'] = 'Trash Bin';
+			$data['nav_title'] = 'Deleted Brands';
+			$data['add_new_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'new-brand' );
+
+			// pagination
+			// i will initialize the pagination first
+			$this->load->library('pagination');
+
+			$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'page/' );
+			$config['total_rows'] = count( $this->brnd_mdl->get_all_brand() );
+			$config['per_page'] = 10;
+			$config['num_links'] = 20;
+
+			$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
+
+			$data['brand_metadata'] = $this->brnd_mdl->get_all_brand( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset ), FALSE, FALSE );
+
 			$this->load->view( 'header', $data );
 			$this->load->view( 'sidebar' );
-			$this->load->view( 'dashboard/brand/Brand_edit_view' );
-			$this->load->view( 'footer' )	;
+			$this->load->view( 'dashboard/brand/Brand_trash_view' );
+			$this->load->view( 'footer' );
+
+		} else if ( $action === 'logs' || $action === 'logview' ) {
+
+			// This is the logs view
+			$data['page_title'] = 'Brands';
+			$data['nav_title'] = 'Brand List';
+			$data['add_new_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'new-brand' );
+
+			// pagination
+			// i will initialize the pagination first
+			$this->load->library('pagination');
+
+			$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'page/' );
+			$config['total_rows'] = count( $this->brnd_mdl->get_activity_logs() );
+			$config['per_page'] = 10;
+			$config['num_links'] = 20;
+
+			$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
+
+			$data['log_metadata'] = $this->brnd_mdl->get_activity_logs( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset ) );
+
+			$this->load->view( 'header', $data );
+			$this->load->view( 'sidebar' );
+			$this->load->view( 'dashboard/brand/Brand_log_view' );
+			$this->load->view( 'footer' );
+
+
+		} else if ( $action === 'delete' ) {
+
+			// delete the brand
+			if ( is_numeric( $brand_id ) ) {
+
+				$exec = $this->brnd_mdl->delete_restore_brand( $brand_id );
+				if ( $exec ) {
+
+					$redirect_url = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) );
+					redirect( $redirect_url );
+
+				}
+
+			}
+
+		} else if ( $action === 'restore' ) {
+
+			// restore the brand
+			if ( is_numeric( $brand_id ) ) {
+
+				$exec = $this->brnd_mdl->delete_restore_brand( $brand_id, 'restore' );
+				if ( $exec ) {
+
+					$redirect_url = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) );
+					redirect( $redirect_url );
+
+				}
+
+			}
 
 		} else {
 
@@ -109,8 +202,6 @@ class Administrator extends CI_Controller {
 			$data['page_title'] = 'Brands';
 			$data['nav_title'] = 'Brand List';
 			$data['add_new_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'new-brand' );
-
-			$this->load->model( 'brand/Brand_model', 'brnd_mdl' );
 
 			// pagination
 			// i will initialize the pagination first
@@ -126,7 +217,7 @@ class Administrator extends CI_Controller {
 			$data['brand_metadata'] = $this->brnd_mdl->get_all_brand( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset ) );
 
 			$this->load->view( 'header', $data );
-			// $this->load->view( 'sidebar' );
+			$this->load->view( 'sidebar' );
 			$this->load->view( 'dashboard/sub_navbar_view' );
 			$this->load->view( 'dashboard/brand/Brands_view' );
 			$this->load->view( 'footer' );
@@ -444,7 +535,7 @@ class Administrator extends CI_Controller {
 				// configurations
 				$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'page/' );
 				$config['total_rows'] = count( (array) $this->roles_model->get_role_informations() );
-				$config['per_page'] = 2;
+				$config['per_page'] = 10;
 				$config['num_links'] = 20;
 
 				$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
