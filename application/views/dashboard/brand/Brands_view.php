@@ -8,7 +8,7 @@ $arr_datas = (array) $brand_metadata;
 		
 		<div class="col s12">
 				
-		<?php if ( count( $arr_datas ) > 0 ) : ?>
+		<?php if ( $brand_metadata != false ) : ?>
 			<div class="data-group">
 				
 				<div class="table-div">
@@ -32,7 +32,7 @@ $arr_datas = (array) $brand_metadata;
 							<tr>
 								<td><?= $value->brand_name ?></td>
 								<td><?= $value->brand_description ?></td>
-								<td><?= $value->brand_created_date ?></td>
+								<td><?= date( "F d, Y g:i:s A", strtotime( $value->brand_created_date ) ) ?></td>
 								<td><?= $this->ext_meta->get_user_meta_data( $value->brand_created_by, 'user_name' ) ?></td>
 					<?php
 						$action_url = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . $this->uri->segment(3) );

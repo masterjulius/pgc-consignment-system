@@ -26,11 +26,14 @@ $arr_datas = (array) $users_log_metadata;
 					foreach ( $users_log_metadata as $value ):
 						$meta_id = $value->meta_id;
 						$meta_value = json_decode( $value->meta_value );
-						$role_operated_by = $meta_value->created_by;
+
+						$meta_key = $value->meta_key;
+						// $created_by = $meta_value->created_by;
+						$operated_by = ( $meta_key == '_last_login' || $meta_key == '_last_logout' ) ? $value->meta_user_id : $meta_value->created_by;;
 				?>
 					<tr>
 						<td><?= $value->meta_action ?></td>
-						<td><?php echo $usermetadata = $this->ext_meta->get_user_meta_data( $role_operated_by )->user_name; ?></td>
+						<td><?php echo $this->ext_meta->get_user_meta_data( $operated_by )->user_name; ?></td>
 						<td><?= date( 'F d, Y g:i:s A', strtotime( $value->meta_date_created ) ) ?></td>
 						
 						<?php $view_targer_url = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'logview/' . $meta_id . '/' ); ?>

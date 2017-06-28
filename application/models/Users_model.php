@@ -195,7 +195,7 @@ class Users_model extends CI_Model {
 					$meta_value = $this->encryption->decrypt( $row->meta_value );
 					$meta_key_id = $row->meta_key_id;
 					$meta_key = $this->ext_meta->get_meta_key_info( array('key_id' => $meta_key_id ) )->key_name;
-					if ( $meta_key == '_delete_user' || $meta_key == '_restore_user' ) {
+					if ( $meta_key == '_delete_user' || $meta_key == '_restore_user' || $meta_key === '_last_login' || $meta_key === '_last_logout' ) {
 
 						$meta_value = $row->meta_value;
 
@@ -214,7 +214,15 @@ class Users_model extends CI_Model {
 							
 						case '_restore_user':
 							$meta_action = 'Restored A User';
-							break;		
+							break;
+
+						case '_last_login':
+							$meta_action = 'Logged In';
+							break;
+							
+						case '_last_logout':
+							$meta_action = 'Logged Out';
+							break;				
 						
 						default:
 							$meta_action = 'Created A User';
@@ -226,6 +234,7 @@ class Users_model extends CI_Model {
 						'meta_id'			=>	$row->meta_id,
 						'meta_action'		=>	$meta_action,
 						'meta_user_id'		=>	$row->meta_user_id,
+						'meta_key'			=>	$meta_key,	
 						'meta_key_id'		=>	$meta_key_id,
 						'meta_value'		=>	$meta_value,
 						'meta_date_created'	=>	$row->meta_date_created

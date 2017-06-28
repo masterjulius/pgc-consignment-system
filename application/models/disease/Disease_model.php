@@ -1,31 +1,32 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 	
-	class Brand_model extends CI_Model {
+	class disease_model extends CI_Model {
 
-		public function get_all_brand( $args = null, $isArray = FALSE, $isActive = TRUE ) {
+		public function get_all_disease( $args = null, $isArray = FALSE, $isActive = TRUE ) {
 
 			if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
 
-				$this->db->select( 'brand_id, brand_name, brand_description, brand_created_date, brand_created_by, brand_edited_date, brand_edited_by' );
-				$this->db->where( 'brand_is_active', $isActive );
-				$query = $this->db->get( 'tbl_item_brand' );
+
+				$this->db->select( 'disease_id, disease_name, disease_description, disease_created_date, disease_created_by, disease_edited_date, disease_edited_by' );
+				$this->db->where( 'disease_is_active', $isActive );
+				$query = $this->db->get( 'tbl_diseases' );
 
 				if ( !empty( $args ) ) {
 
 					if ( array_key_exists( 'limit', $args ) && array_key_exists( 'offset', $args ) && !array_key_exists( 'key', $args ) ) {
 
-						$this->db->select( 'brand_id, brand_name, brand_description, brand_created_date, brand_created_by, brand_edited_date, brand_edited_by' );
-						$this->db->where( 'brand_is_active', $isActive );
-						$query = $this->db->get( 'tbl_item_brand', $args['limit'], $args['offset'] );
+						$this->db->select( 'disease_id, disease_name, disease_description, disease_created_date, disease_created_by, disease_edited_date, disease_edited_by' );
+						$this->db->where( 'disease_is_active', $isActive );
+						$query = $this->db->get( 'tbl_diseases', $args['limit'], $args['offset'] );
 
 					} else if ( array_key_exists( 'limit', $args ) && array_key_exists( 'offset', $args ) && array_key_exists( 'key', $args ) ) {
 
-						$this->db->select( 'brand_id, brand_name, brand_description, brand_created_date, brand_created_by, brand_edited_date, brand_edited_by' );
-						$this->db->like( 'brand_name', $args['key'] );
-						$this->db->or_like( 'brand_description', $args['key'] );
-						$this->db->where( 'brand_is_active', $isActive );
-						$query = $this->db->get( 'tbl_item_brand', $args['limit'], $args['offset'] );
+						$this->db->select( 'disease_id, disease_name, disease_description, disease_created_date, disease_created_by, disease_edited_date, disease_edited_by' );
+						$this->db->like( 'disease_name', $args['key'] );
+						$this->db->or_like( 'disease_description', $args['key'] );
+						$this->db->where( 'disease_is_active', $isActive );
+						$query = $this->db->get( 'tbl_diseases', $args['limit'], $args['offset'] );
 
 					}
 
@@ -37,15 +38,15 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 					if ( $query->num_rows() > 0 ) {
 						$returnDatas = array();
 						foreach ( $query->result() as $row ) {
-							
+
 							$objectDatas = (object) array(
-								'brand_id'				=>	$row->brand_id,
-								'brand_name'			=>	$row->brand_name,
-								'brand_description'		=>	$row->brand_description,
-								'brand_created_date'	=>	$row->brand_created_date,
-								'brand_created_by'		=>	$row->brand_created_by,
-								'brand_edited_date'		=>	$row->brand_edited_date,
-								'brand_edited_by'		=>	$row->brand_edited_by,
+								'disease_id'			=>	$row->disease_id,
+								'disease_name'			=>	$row->disease_name,
+								'disease_description'	=>	$row->disease_description,
+								'disease_created_date'	=>	$row->disease_created_date,
+								'disease_created_by'	=>	$row->disease_created_by,
+								'disease_edited_date'	=>	$row->disease_edited_date,
+								'disease_edited_by'		=>	$row->disease_edited_by,
 								);
 							array_push( $returnDatas , $objectDatas );
 
@@ -67,27 +68,25 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 		}
 
-		// getting the single brand meta datas
-		public function get_single_brand( $brand_id ) {
+		// getting the single disease meta datas
+		public function get_single_disease( $disease_id ) {
 
 			if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
 
-				if ( is_numeric( $brand_id ) ) {
+				if ( is_numeric( $disease_id ) ) {
 
-					$this->db->select( 'brand_id, brand_name, brand_description' );
-					$this->db->where( array( 'brand_id' => $brand_id, 'brand_is_active' => TRUE ) );
-					$query = $this->db->get( 'tbl_item_brand' );
+					$this->db->select( 'disease_id, disease_name, disease_description' );
+					$this->db->where( array( 'disease_id' => $disease_id, 'disease_is_active' => TRUE ) );
+					$query = $this->db->get( 'tbl_diseases' );
 					if ( $query ) {
 
 						if ( $query->num_rows() > 0 ) {
 
 							$returnDatas = array();
 							while ( $row = $query->unbuffered_row() ) {
-								
-								$returnDatas['brand_id'] = $row->brand_id;
-								$returnDatas['brand_name'] = $row->brand_name;
-								$returnDatas['brand_description'] = $row->brand_description;
-
+								$returnDatas['disease_id'] = $row->disease_id;
+								$returnDatas['disease_name'] = $row->disease_name;
+								$returnDatas['disease_description'] = $row->disease_description;
 							}
 
 							return (object) $returnDatas;
@@ -105,51 +104,51 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 		}
 
-		public function save_brand( $array_values ) {
+		public function save_disease( $array_values ) {
 
 			if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
 
 				if ( is_array( $array_values ) ) {
 
-					if ( array_key_exists( 'brand_name', $array_values ) || array_key_exists( 'brand_description', $array_values ) ) {
+					if ( array_key_exists( 'disease_name', $array_values ) || array_key_exists( 'disease_description', $array_values ) ) {
 
 						// set the date meta info
 	        			$current_timestamp = date( "Y-m-d H:i:s" );
 	        			$current_user_session_id = $this->session->cnsgnmnt_sess_prefix_user_id;
 
-						if ( array_key_exists( 'brand_id', $array_values ) ) {
+						if ( array_key_exists( 'disease_id', $array_values ) ) {
 
 							$this->db->trans_start();
 							// update action
 
-							$current_datas = $this->_get_current_data( $array_values['brand_id'] );
+							$current_datas = $this->_get_current_data( $array_values['disease_id'] );
 
 							$data = array(
-							    'brand_name'		=>	$array_values['brand_name'],
-							    'brand_description'	=>	$array_values['brand_description'],
-							    'brand_edited_by'	=>	$current_user_session_id
+							    'disease_name'			=>	$array_values['disease_name'],
+							    'disease_description'	=>	$array_values['disease_description'],
+							    'disease_edited_by'		=>	$current_user_session_id
 							);
 
-							$this->db->where( 'brand_id', $array_values['brand_id'] );
-							$query = $this->db->update( 'tbl_item_brand', $data );
+							$this->db->where( 'disease_id', $array_values['disease_id'] );
+							$query = $this->db->update( 'tbl_diseases', $data );
 							if ( $query ) {
 
 								$meta_value = '{ "old" : {
-										"brand_name" : "' . $current_datas->brand_name . '",
-										"brand_description" : "' . $current_datas->brand_description . '",
-										"date_operated" : "' . $current_datas->brand_edited_date . '"
+										"disease_name" : "' . $current_datas->disease_name . '",
+										"disease_description" : "' . $current_datas->disease_description . '",
+										"date_operated" : "' . $current_datas->disease_edited_date . '"
 									},
 									"new" : {
-										"brand_name" : "' . $array_values['brand_name'] . '",
-										"brand_description" : "' . $array_values['brand_description'] . '",
+										"disease_name" : "' . $array_values['disease_name'] . '",
+										"disease_description" : "' . $array_values['disease_description'] . '",
 										"date_operated" : "' . $current_timestamp . '"
 									},
 									"created_by" : "'. $current_user_session_id .'"
 								}';
 
 								$meta_data = array(
-									'meta_key_id'		=>	$this->ext_meta->get_meta_key_info( '_create_brand' )->key_id,
-									'meta_brand_id'		=>	$array_values['brand_id'],
+									'meta_key_id'		=>	$this->ext_meta->get_meta_key_info( '_create_disease' )->key_id,
+									'meta_disease_id'	=>	$array_values['disease_id'],
 									'meta_value'		=>	$this->encryption->encrypt( $meta_value )	
 								);
 
@@ -157,7 +156,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 									$this->db->trans_complete();
 
-									return $array_values['brand_id'];
+									return $array_values['disease_id'];
 
 								}
 
@@ -168,26 +167,26 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 							$this->db->trans_start();
 							// add action
 							$data = array(
-							    'brand_name'		=>	$array_values['brand_name'],
-							    'brand_description'	=>	$array_values['brand_description'],
-							    'brand_created_by'	=>	$current_user_session_id
+							    'disease_name'			=>	$array_values['disease_name'],
+							    'disease_description'	=>	$array_values['disease_description'],
+							    'disease_created_by'	=>	$current_user_session_id
 							);
 
-							$query = $this->db->insert( 'tbl_item_brand', $data );
+							$query = $this->db->insert( 'tbl_diseases', $data );
 							if ( $query ) {
 
 								$last_id = $this->db->insert_id();
 
 								$meta_value = '{
-									"brand_name" : "' . $array_values['brand_name'] . '",
-									"brand_description" : "' . $array_values['brand_description'] . '",
+									"disease_name" : "' . $array_values['disease_name'] . '",
+									"disease_description" : "' . $array_values['disease_description'] . '",
 									"date_operated" : "' . $current_timestamp . '",
 									"created_by" : "'. $current_user_session_id .'"
 								}';
 
 								$meta_data = array(
-									'meta_key_id'		=>	$this->ext_meta->get_meta_key_info( '_edit_brand' )->key_id,
-									'meta_brand_id'		=>	$last_id,
+									'meta_key_id'		=>	$this->ext_meta->get_meta_key_info( '_edit_disease' )->key_id,
+									'meta_disease_id'		=>	$last_id,
 									'meta_value'		=>	$this->encryption->encrypt( $meta_value )	
 								);
 
@@ -219,50 +218,50 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 		/**
 		 * ---------------------------------------------------------------------------
-		 * - Delete or Restore the Brand
-		 * @param int $brand_id = the id of the data to be updated
+		 * - Delete or Restore the disease
+		 * @param int $disease_id = the id of the data to be updated
 		 * @return boolean - if transaction is successfull then it should retun true. otherwise it should return false.
 		 * ---------------------------------------------------------------------------
 		 */
-		public function delete_restore_brand( $brand_id, $action = 'delete' ) {
+		public function delete_restore_disease( $disease_id, $action = 'delete' ) {
 
-			if ( is_numeric( $brand_id ) ) {
+			if ( is_numeric( $disease_id ) ) {
 
 				$current_user_session_id = $this->session->cnsgnmnt_sess_prefix_user_id;
 				$current_timestamp = date( "Y-m-d H:i:s" );
 
-				$meta_key_id = $this->ext_meta->get_meta_key_info( '_delete_brand' )->key_id;
+				$meta_key_id = $this->ext_meta->get_meta_key_info( '_delete_disease' )->key_id;
 
 				$meta_value = '{"date_created":"'. $current_timestamp .'","created_by":"'. $current_user_session_id .'"}';
 
 				$update_value = array(
-					'brand_edited_by'	=>	$current_user_session_id,
-					'brand_is_active'	=>	FALSE
+					'disease_edited_by'	=>	$current_user_session_id,
+					'disease_is_active'	=>	FALSE
 				);
 
 				if ( $action === 'restore' || $action === 'r' ) {
 
 					// restore
 					$update_value = array(
-						'brand_edited_by'	=>	$current_user_session_id,
-						'brand_is_active'	=>	TRUE
+						'disease_edited_by'	=>	$current_user_session_id,
+						'disease_is_active'	=>	TRUE
 					);
-					$meta_key_id = $this->ext_meta->get_meta_key_info( '_restore_brand' )->key_id;
+					$meta_key_id = $this->ext_meta->get_meta_key_info( '_restore_disease' )->key_id;
 
 				}
 
 				$this->db->trans_start();
 
-				$this->db->where( 'brand_id', $brand_id );
-				$query = $this->db->update( 'tbl_item_brand', $update_value );
+				$this->db->where( 'disease_id', $disease_id );
+				$query = $this->db->update( 'tbl_diseases', $update_value );
 				if ( $query ) {
 
 					$meta_data = array(
 						'meta_key_id'	=>	$meta_key_id,
-						'meta_brand_id'	=>	$brand_id,
+						'meta_disease_id'	=>	$disease_id,
 						'meta_value'	=>	$meta_value
 					);
-					if ( $this->db->insert( 'tbl_itembrandmeta', $meta_data ) ) {
+					if ( $this->db->insert( 'tbl_diseasemeta', $meta_data ) ) {
 
 						$this->db->trans_complete();
 
@@ -291,18 +290,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 		 */
 		public function get_activity_logs( $parameter_query = null ) {
 
-			$query = $this->db->get( 'tbl_itembrandmeta' );
+			$query = $this->db->get( 'tbl_diseasemeta' );
 
 			if ( null != $parameter_query || '' != $parameter_query ) {
-				
-				$this->db->order_by( "meta_date_created", "desc" );
-				$query = $this->db->get( 'tbl_itembrandmeta' );
+
+				$this->db->order_by( "meta_created_date", "desc" );
+				$query = $this->db->get( 'tbl_diseasemeta' );
 
 				if ( is_array( $parameter_query ) ) {
 					
 					if ( array_key_exists( 'limit', $parameter_query ) && array_key_exists( 'offset', $parameter_query ) ) {
 
-						$query = $this->db->get( 'tbl_itembrandmeta', $parameter_query['limit'], $parameter_query['offset'] );
+						$query = $this->db->get( 'tbl_diseasemeta', $parameter_query['limit'], $parameter_query['offset'] );
 
 					}
 
@@ -321,29 +320,29 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 						$meta_value = $this->encryption->decrypt( $row->meta_value );
 						$meta_key_id = $row->meta_key_id;
 						$meta_key = $this->ext_meta->get_meta_key_info( array( 'key_id' => $meta_key_id ) )->key_name;
-						if ( $meta_key == '_delete_brand' || $meta_key == '_restore_brand' ) {
+						if ( $meta_key == '_delete_disease' || $meta_key == '_restore_disease' ) {
 
 							$meta_value = $row->meta_value;
 
 						}
 
-						$meta_action = 'Created A Brand';
+						$meta_action = 'Created A disease';
 						switch ( $meta_key ) {
 
-							case '_edit_brand':
-								$meta_action = 'Updated A Brand';
+							case '_edit_disease':
+								$meta_action = 'Updated A disease';
 								break;
 
-							case '_delete_brand':
-								$meta_action = 'Deleted A Brand';
+							case '_delete_disease':
+								$meta_action = 'Deleted A disease';
 								break;
 								
-							case '_restore_brand':
-								$meta_action = 'Restored A Brand';
+							case '_restore_disease':
+								$meta_action = 'Restored A disease';
 								break;	
 							
 							default:
-								$meta_action = 'Created A Brand';
+								$meta_action = 'Created A disease';
 								break;
 
 						}
@@ -351,7 +350,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 						$objectDatas = (object) array(
 							'meta_id'			=>	$row->meta_id,
 							'meta_action'		=>	$meta_action,
-							'meta_brand_id'		=>	$row->meta_brand_id,
+							'meta_disease_id'	=>	$row->meta_disease_id,
 							'meta_key_id'		=>	$meta_key_id,
 							'meta_value'		=>	$meta_value,
 							'meta_created_date'	=>	$row->meta_created_date
@@ -374,11 +373,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 		// ---------------------------------------------------------------------------
 
 		// get the previous / current data
-		private function _get_current_data( $brand_id ) {
+		private function _get_current_data( $disease_id ) {
 
-			$this->db->select( 'brand_name, brand_description, brand_edited_date' );
-			$this->db->where( 'brand_id', $brand_id );
-			$query = $this->db->get( 'tbl_item_brand' );
+			$this->db->select( 'disease_name, disease_description, disease_edited_date' );
+			$this->db->where( 'disease_id', $disease_id );
+			$query = $this->db->get( 'tbl_diseases' );
 			if ( $query ) {
 
 				if ( $query->num_rows() > 0 ) {
@@ -387,8 +386,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 					while ( $row = $query->unbuffered_row() ) {
 
-						$returnDatas['brand_name'] = $row->brand_name;
-						$returnDatas['brand_description'] = $row->brand_description;
+						$returnDatas['disease_name'] = $row->disease_name;
+						$returnDatas['disease_description'] = $row->disease_description;
 
 					}
 
@@ -408,7 +407,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 				if ( is_array( $args ) ) {
 
-					if ( $this->db->insert( 'tbl_itembrandmeta', $args ) ) {
+					if ( $this->db->insert( 'tbl_diseasemeta', $args ) ) {
 
 						return TRUE;
 

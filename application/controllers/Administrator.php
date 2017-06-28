@@ -55,7 +55,14 @@ class Administrator extends CI_Controller {
 
 			if ( $action === 'new' ) {
 
-				$data['page_title'] = 'Add Item';
+				$data['page_title'] = 'New Item';
+
+				// Filling up combo box datas
+				$this->load->model( 'brand/Brand_model', 'brnd_mdl' );
+				$this->load->model( 'disease/Disease_model', 'dsse_mdl' );
+
+				$data['list_brands'] = $this->brnd_mdl->get_all_brand();
+				$data['list_diseases'] = $this->dsse_mdl->get_all_disease();
 				$this->load->view( 'header', $data );
 				$this->load->view( 'sidebar' );
 				$this->load->view( 'dashboard/glossary/Glossary_add_view' );
@@ -112,15 +119,22 @@ class Administrator extends CI_Controller {
 				$this->load->view( 'dashboard/brand/Brand_edit_view' );
 				$this->load->view( 'footer' );
 
-
 			}
 
-		} else if ( $action === 'trash' ) {
+		} else if ( $action === 'search' || $action == 's' ) {
 
-			// Trash / Recycle view
-			$data['page_title'] = 'Trash Bin';
-			$data['nav_title'] = 'Deleted Brands';
+			// search action
+			// This is the display of list of brands
+			$data['page_title'] = 'Brands';
+			$data['nav_title'] = 'Brand List';
 			$data['add_new_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'new-brand' );
+			$data['admin_pages'] = $this->admin_pages;
+
+			$search_key = $this->input->post( 'search_brand' );
+			if ( $search_key === '*' ) {
+				$search_key = '';
+			}
+			$data[ 'search_key' ] = $search_key;
 
 			// pagination
 			// i will initialize the pagination first
@@ -133,11 +147,12 @@ class Administrator extends CI_Controller {
 
 			$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
 
-			$data['brand_metadata'] = $this->brnd_mdl->get_all_brand( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset ), FALSE, FALSE );
+			$data['brand_metadata'] = $this->brnd_mdl->get_all_brand( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset, 'key'	=>	$search_key ) );
 
 			$this->load->view( 'header', $data );
 			$this->load->view( 'sidebar' );
-			$this->load->view( 'dashboard/brand/Brand_trash_view' );
+			$this->load->view( 'dashboard/sub_navbar_view' );
+			$this->load->view( 'dashboard/brand/Brands_view' );
 			$this->load->view( 'footer' );
 
 		} else if ( $action === 'logs' || $action === 'logview' ) {
@@ -165,6 +180,29 @@ class Administrator extends CI_Controller {
 			$this->load->view( 'dashboard/brand/Brand_log_view' );
 			$this->load->view( 'footer' );
 
+
+		} else if ( $action === 'trash' ) {
+
+			// Trash / Recycle view
+			$data['page_title'] = 'Trash Bin';
+
+			// pagination
+			// i will initialize the pagination first
+			$this->load->library('pagination');
+
+			$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'page/' );
+			$config['total_rows'] = count( $this->brnd_mdl->get_all_brand() );
+			$config['per_page'] = 10;
+			$config['num_links'] = 20;
+
+			$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
+
+			$data['brand_metadata'] = $this->brnd_mdl->get_all_brand( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset ), FALSE, FALSE );
+
+			$this->load->view( 'header', $data );
+			$this->load->view( 'sidebar' );
+			$this->load->view( 'dashboard/brand/Brand_trash_view' );
+			$this->load->view( 'footer' );
 
 		} else if ( $action === 'delete' ) {
 
@@ -220,6 +258,184 @@ class Administrator extends CI_Controller {
 			$this->load->view( 'sidebar' );
 			$this->load->view( 'dashboard/sub_navbar_view' );
 			$this->load->view( 'dashboard/brand/Brands_view' );
+			$this->load->view( 'footer' );
+
+		}
+
+	}
+
+	/** -------------------------------------------------------------------------
+	* |								Disease Controller 							|
+	* ---------------------------------------------------------------------------
+	*/
+
+	public function disease( $action = 'default', $disease_id = null ) {
+
+		$this->load->model( 'disease/Disease_model', 'dsse_mdl' );
+		$config = $this->_init_pagination_config();
+
+		if ( $action === 'add' || $action === 'new' ) {
+
+			// add action
+			$data['page_title'] = 'Diseases';
+			$this->load->view( 'header', $data );
+			$this->load->view( 'sidebar' );
+			$this->load->view( 'dashboard/disease/Disease_add_view' );
+			$this->load->view( 'footer' );
+
+
+		} else if ( $action === 'edit' ) {
+
+			// edit action
+			if ( null != $disease_id || '' != $disease_id ) {
+
+				// new / add brand
+				$result_data = $this->dsse_mdl->get_single_disease( $disease_id );
+				$data['disease_metadata'] = $result_data;
+				$data['page_title'] = 'Edit Disease';
+				$this->load->view( 'header', $data );
+				$this->load->view( 'sidebar' );
+				$this->load->view( 'dashboard/disease/Disease_edit_view' );
+				$this->load->view( 'footer' );
+
+			}
+
+		} else if ( $action === 'search' || $action == 's' ) {
+
+			// search action
+			// This is the display of list of brands
+			$data['page_title'] = 'Diseases';
+			$data['nav_title'] = 'Disease List';
+			$data['admin_pages'] = $this->admin_pages;
+
+			$search_key = $this->input->post( 'search_disease' );
+			if ( $search_key === '*' ) {
+				$search_key = '';
+			}
+			$data[ 'search_key' ] = $search_key;
+
+			// pagination
+			// i will initialize the pagination first
+			$this->load->library('pagination');
+
+			$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'page/' );
+			$config['total_rows'] = count( $this->dsse_mdl->get_all_disease() );
+			$config['per_page'] = 10;
+			$config['num_links'] = 20;
+
+			$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
+
+			$data['disease_metadata'] = $this->dsse_mdl->get_all_disease( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset, 'key'	=>	$search_key ) );
+
+			$this->load->view( 'header', $data );
+			$this->load->view( 'sidebar' );
+			$this->load->view( 'dashboard/sub_navbar_view' );
+			$this->load->view( 'dashboard/disease/Diseases_view' );
+			$this->load->view( 'footer' );
+
+		} else if ( $action === 'delete' ) {
+
+			// delete the brand
+			if ( is_numeric( $disease_id ) ) {
+
+				$exec = $this->dsse_mdl->delete_restore_disease( $disease_id );
+				if ( $exec ) {
+
+					$redirect_url = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) );
+					redirect( $redirect_url );
+
+				}
+
+			}
+
+		} else if ( $action === 'restore' ) {
+
+			// restore the brand
+			if ( is_numeric( $disease_id ) ) {
+
+				$exec = $this->dsse_mdl->delete_restore_disease( $disease_id, 'restore' );
+				if ( $exec ) {
+
+					$redirect_url = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) );
+					redirect( $redirect_url );
+
+				}
+
+			}
+
+		} else if ( $action === 'logs' || $action === 'logview' ) {
+
+			// This is the logs view
+			$data['page_title'] = 'Disease';
+			$data['nav_title'] = 'Disease List';
+			$data['add_new_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'new-brand' );
+
+			// pagination
+			// i will initialize the pagination first
+			$this->load->library('pagination');
+
+			$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'page/' );
+			$config['total_rows'] = count( $this->dsse_mdl->get_activity_logs() );
+			$config['per_page'] = 10;
+			$config['num_links'] = 20;
+
+			$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
+
+			$data['log_metadata'] = $this->dsse_mdl->get_activity_logs( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset ) );
+
+			$this->load->view( 'header', $data );
+			$this->load->view( 'sidebar' );
+			$this->load->view( 'dashboard/disease/Disease_logs_view' );
+			$this->load->view( 'footer' );
+
+
+		} else if ( $action === 'trash' ) {
+
+			// This is the trash view
+			$data['page_title'] = 'Diseases &mdash; Trash';
+
+			// pagination
+			// i will initialize the pagination first
+			$this->load->library('pagination');
+
+			$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'page/' );
+			$config['total_rows'] = count( $this->dsse_mdl->get_all_disease() );
+			$config['per_page'] = 10;
+			$config['num_links'] = 20;
+
+			$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
+
+			$data['disease_metadata'] = $this->dsse_mdl->get_all_disease( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset ), FALSE, FALSE );
+
+			$this->load->view( 'header', $data );
+			$this->load->view( 'sidebar' );
+			$this->load->view( 'dashboard/disease/Disease_trash_view' );
+			$this->load->view( 'footer' );
+
+
+		} else {
+
+			// This is the display of list of brands
+			$data['page_title'] = 'Diseases';
+			$data['nav_title'] = 'Disease List';
+
+			// pagination
+			// i will initialize the pagination first
+			$this->load->library('pagination');
+
+			$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'page/' );
+			$config['total_rows'] = count( $this->dsse_mdl->get_all_disease() );
+			$config['per_page'] = 10;
+			$config['num_links'] = 20;
+
+			$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
+
+			$data['disease_metadata'] = $this->dsse_mdl->get_all_disease( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset ) );
+
+			$this->load->view( 'header', $data );
+			$this->load->view( 'sidebar' );
+			$this->load->view( 'dashboard/sub_navbar_view' );
+			$this->load->view( 'dashboard/disease/Diseases_view' );
 			$this->load->view( 'footer' );
 
 		}
