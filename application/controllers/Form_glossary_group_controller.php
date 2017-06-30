@@ -3,7 +3,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 	
 	class Form_glossary_group_controller extends CI_Controller {
 
-		private $current_user_session_id;
+		public $current_user_session_id;
+		public $current_timestamp;
 
 		public function __construct() {
 
@@ -12,6 +13,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 			$this->load->library( array('form_validation', 'session', 'encryption') );
 			$this->load->helper( array('url', 'html') );
 			$this->current_user_session_id = $this->session->cnsgnmnt_sess_prefix_user_id;
+			$this->current_timestamp = date( "Y-m-d H:i:s" );
 
 		}
 
@@ -22,7 +24,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 				// the action goes here
 				$this->form_validation->set_rules( 'supply_type', 'Supply Type', 'required', array('required' => 'You must provide a %s.') );
 				$this->form_validation->set_rules( 'supply_name', 'Supply Name', 'required', array('required' => 'You must provide a %s.') );
-				$this->form_validation->set_rules( 'brand', 'Brand', 'required', array('required' => 'You must provide a %s.') );
 				$this->form_validation->set_rules( 'disease', 'Disease', 'required', array('required' => 'You must provide a %s.') );
 				$this->form_validation->set_rules( 'description', 'Description', 'required', array('required' => 'You must provide a %s.') );
 
@@ -35,7 +36,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 					// get form inputs
 					$supply_type = $this->input->post( 'supply_type' );
 					$supply_name = $this->input->post( 'supply_name' );
-					$brand = $this->input->post( 'brand' );
 					$disease = $this->input->post( 'disease' );
 					$description = $this->input->post( 'description' );
 
@@ -50,6 +50,21 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 					if ( !is_null( $this->input->post( 'supply_id' ) ) ) {
 
 						$meta_datas['item_id'] = $this->input->post( 'supply_id' );
+
+					}
+
+					// print_r( $meta_datas );
+
+					$this->load->model( 'glossary/Glossary_model', 'glssry_mdl' );
+					$result = $this->glssry_mdl->save_glossary( $meta_datas );	
+					if ( $result != false ) {
+
+						$target_url = $this->input->post( 'target_url' );
+						redirect( $target_url . $result . '/' );
+
+					} else {
+
+						redirect( 'administrator/glossary/new/' );
 
 					}
 

@@ -68,11 +68,53 @@ class Administrator extends CI_Controller {
 				$this->load->view( 'dashboard/glossary/Glossary_add_view' );
 				$this->load->view( 'footer' );
 
+			} else if ( $action === 'edit' ) {
+
+				// edit
+				if ( null != $glossary_id || '' != $glossary_id ) {
+
+					$this->load->model( 'glossary/Glossary_model', 'glsrry_mdl' );
+					$data['glossary_metadata'] = $this->glsrry_mdl->get_single_data( $glossary_id );
+
+					// Filling up combo box datas
+					$this->load->model( 'brand/Brand_model', 'brnd_mdl' );
+					$this->load->model( 'disease/Disease_model', 'dsse_mdl' );
+
+					$data['list_brands'] = $this->brnd_mdl->get_all_brand();
+					$data['list_diseases'] = $this->dsse_mdl->get_all_disease();
+					$this->load->view( 'header', $data );
+					$this->load->view( 'sidebar' );
+					$this->load->view( 'dashboard/glossary/Glossary_edit_view' );
+					$this->load->view( 'footer' );
+
+				}
+
+			} else if ( $action === 'delete' ) {
+
+				// delete action
+
 			} else {
 
 				// the default page
 				$data['page_title'] = 'Glossary';
 				$data['nav_title'] = 'Medicine/Supply List';
+
+				$this->load->model( 'glossary/Glossary_model', 'glsrry_mdl' );
+
+				// pagination
+				// i will initialize the pagination first
+				$this->load->library('pagination');
+
+				$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'page/' );
+				$config['total_rows'] = count( $this->glsrry_mdl->get_all_glossary() );
+				$config['per_page'] = 10;
+				$config['num_links'] = 20;
+
+				$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
+
+				$data['glossary_metadata'] = $this->glsrry_mdl->get_all_glossary( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset ) );
+				$data['config'] = $config;
+
 				$this->load->view( 'header', $data );
 				$this->load->view( 'sidebar' );
 				$this->load->view( 'dashboard/sub_navbar_view' );
