@@ -92,6 +92,11 @@ class Administrator extends CI_Controller {
 			} else if ( $action === 'delete' ) {
 
 				// delete action
+				if ( !is_null( $glossary_id ) || !empty( $glossary_id ) ) {
+
+					
+					
+				}
 
 			} else {
 
