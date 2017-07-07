@@ -31,8 +31,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 					}
 
 				}
-
-						// run the query
+					
+				// run the query
 				if ( $query ) {
 
 					if ( $query->num_rows() > 0 ) {
@@ -75,62 +75,69 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 			if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
 
-				$array_datas = array(
-					'item_type'					=>	$args['item_type'],
-					'item_name'					=>	$args['item_name'],
-					'item_description'			=>	$args['item_description'],
-					'item_disinfects_disease_id'=>	$args['item_disinfects_disease_id'],
-					'item_created_by'			=>	$args['item_created_by'],
-					'item_edited_by'			=>	$args['item_created_by']
-				);
-
-				$json_data = '{ "meta_datas" : { "item_type" : "'. $args['item_type'] .'", "item_name" : "'. $args['item_name'] .'", "item_disinfects" : "'. $args['item_disinfects_disease_id'] .'", "item_description" : "'. $args['item_description'] .'", "item_created_by" : "'. $args['item_created_by'] .'", }, "date_operated" : "'. $this->current_timestamp .'" }';
-
-				$meta_key_id = $this->ext_meta->get_meta_key_info( '_create_glossary_item' )->key_id;
-
-				$this->db->trans_start();
-
-				$query = $this->db->insert( 'tbl_items', $array_datas );
-
 				if ( array_key_exists( 'item_id' , $args ) ) {
 
 					if ( $args['item_id'] != null ) {
 
+						$array_datas = array(
+							'item_type'					=>	$args['item_type'],
+							'item_name'					=>	$args['item_name'],
+							'item_description'			=>	$args['item_description'],
+							'item_disinfects_disease_id'=>	$args['item_disinfects_disease_id'],
+							'item_edited_by'			=>	$args['item_created_by']
+						);
+
 						$curr_datas = $this->_get_current_glossary_datas( $args['item_id'] );
-						print_r( $curr_datas );
 
 						$json_data = '{ "old" : { "meta_datas" : { "item_type" : "'.$curr_datas->item_type.'", "item_name" : "'.$curr_datas->item_name.'", "item_disinfects" : "'.$curr_datas->item_disinfects_disease_id.'", "item_description" : "'.$curr_datas->item_description.'", "operated_by" : "'.$curr_datas->item_edited_by.'" }, "date_operated" : "'.$curr_datas->item_edited_date.'" }, "new" : { "meta_datas" : { "item_type" : "'.$args['item_type'].'", "item_name" : "'.$args['item_name'].'", "item_disinfects" : "'.$args['item_disinfects_disease_id'].'", "item_description" : "'.$args['item_description'].'", "operated_by" : "'.$args['item_created_by'].'" },
 								"date_operated" : "'.$this->current_timestamp.'" } }';
 
 						$meta_key_id = $this->ext_meta->get_meta_key_info( '_edit_glossary_item' )->key_id;
-
 						$array_datas['item_id'] = $args['item_id'];
+						$this->db->trans_start();
 						$query = $this->db->update( 'tbl_items', $array_datas, array( 'item_id' => $args['item_id'] ) );
-						$this->db->trans_complete();
-
-						return $args['item_id'];
+						if ( $query ) {
+							$this->db->trans_complete();
+							return $args['item_id'];
+						}
 						
 					}
 					
-				}
+				} else {
 
-				//action
-				if ( $query ) {
-
-					$last_id = $this->db->insert_id();
-
-					$json_data = $this->encryption->encrypt( $json_data );
-
-					$meta_datas = array(
-						'meta_item_id'	=>	$last_id,
-						'meta_key_id'	=>	$meta_key_id,
-						'meta_value'	=>	$json_data,
+					$array_datas = array(
+						'item_type'					=>	$args['item_type'],
+						'item_name'					=>	$args['item_name'],
+						'item_description'			=>	$args['item_description'],
+						'item_disinfects_disease_id'=>	$args['item_disinfects_disease_id'],
+						'item_created_by'			=>	$args['item_created_by'],
+						'item_edited_by'			=>	$args['item_created_by']
 					);
 
-					if ( $this->db->insert( 'tbl_itemmeta', $meta_datas ) ) {
+					$json_data = '{ "meta_datas" : { "item_type" : "'. $args['item_type'] .'", "item_name" : "'. $args['item_name'] .'", "item_disinfects" : "'. $args['item_disinfects_disease_id'] .'", "item_description" : "'. $args['item_description'] .'", "item_created_by" : "'. $args['item_created_by'] .'", }, "date_operated" : "'. $this->current_timestamp .'" }';
 
-						$this->db->trans_complete();
-						return $last_id;
+					$meta_key_id = $this->ext_meta->get_meta_key_info( '_create_glossary_item' )->key_id;
+					$query = $this->db->insert( 'tbl_items', $array_datas );
+
+					//action
+					if ( $query ) {
+
+						$last_id = $this->db->insert_id();
+
+						$json_data = $this->encryption->encrypt( $json_data );
+
+						$meta_datas = array(
+							'meta_item_id'	=>	$last_id,
+							'meta_key_id'	=>	$meta_key_id,
+							'meta_value'	=>	$json_data,
+						);
+
+						if ( $this->db->insert( 'tbl_itemmeta', $meta_datas ) ) {
+
+							$this->db->trans_complete();
+							return $last_id;
+
+						}
 
 					}
 
@@ -138,6 +145,64 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 			}	
 			
+		}
+
+		// delete glossary / item
+		public function remove_restore_glossary( $glossary_id, $action = 'delete' ) {
+
+			if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
+
+				if ( is_numeric( $glossary_id ) ) {
+
+					$meta_key_id = $this->ext_meta->get_meta_key_info( '_delete_glossary_item' )->key_id;
+
+					$meta_value = '{"date_created":"'. $this->current_timestamp .'","created_by":"'. $this->current_user_session_id .'"}';
+
+					$update_value = array(
+						'item_edited_by'	=>	$this->current_user_session_id,
+						'item_is_active'	=>	FALSE
+					);
+
+					if ( $action === 'restore' || $action === 'r' ) {
+
+						// restore
+						$update_value = array(
+							'item_edited_by'	=>	$this->current_user_session_id,
+							'item_is_active'	=>	TRUE
+						);
+						$meta_key_id = $this->ext_meta->get_meta_key_info( '_restore_glossary_item' )->key_id;
+
+					}
+
+					$this->db->trans_start();
+
+					$this->db->where( 'item_id', $glossary_id );
+					$query = $this->db->update( 'tbl_items', $update_value );
+					if ( $query ) {
+
+						$meta_data = array(
+							'meta_key_id'	=>	$meta_key_id,
+							'meta_item_id'	=>	$glossary_id,
+							'meta_value'	=>	$meta_value
+						);
+						if ( $this->db->insert( 'tbl_itemmeta', $meta_data ) ) {
+
+							$this->db->trans_complete();
+
+							return TRUE;
+
+						}
+
+						return FALSE;
+
+					}
+
+					return FALSE;
+
+				}
+
+			}	
+
 		}
 
 		public function get_single_data( $glossary_id ) {

@@ -53,8 +53,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 					}
 
-					// print_r( $meta_datas );
-
 					$this->load->model( 'glossary/Glossary_model', 'glssry_mdl' );
 					$result = $this->glssry_mdl->save_glossary( $meta_datas );	
 					if ( $result != false ) {

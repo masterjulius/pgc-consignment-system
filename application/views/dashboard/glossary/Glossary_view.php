@@ -34,7 +34,7 @@ $arr_datas = (array) $glossary_metadata;
 						<td><?= $value->item_disinfects_disease_id ?></td>
 						<td><?= date( 'F d, Y g:i:s A', strtotime( $value->item_date_created ) ) ?></td>
 						<td><?php echo $usermetadata = $this->ext_meta->get_user_meta_data( $value->item_created_by )->user_name; ?></td>
-						<?php $delete_targer_url = base_url( $this->uri->segment(2) . $this->uri->slash_rsegment(3) . 'delete/' . $glossary_id . '/' ); ?>
+						<?php $delete_targer_url = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . $this->uri->segment(3) . 'delete/' . $glossary_id . '/' ); ?>
 						<td><a href="<?php echo base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'edit/' . $glossary_id . '/' ); ?>">Edit</a> | <a href="!#" class="red-text" onclick="event.preventDefault();if(confirm('Are you sure you want to delete this item?')==true){window.location.href='<?php echo $delete_targer_url; ?>';}">Delete</a>
 						</td>
 					</tr>
@@ -57,7 +57,7 @@ $arr_datas = (array) $glossary_metadata;
 					echo $this->pagination->create_links();
 				?>	
 				</div>
-			</div>	
+			</div>
 
 		</div>
 
