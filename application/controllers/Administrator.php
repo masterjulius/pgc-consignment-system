@@ -41,16 +41,269 @@ class Administrator extends CI_Controller {
 	}
 
 	/** ----------------------------------------------------------------------------------
+	* |																					 |
+	* |										Consignor Group 							 |
+	* |																					 |
+	* ------------------------------------------------------------------------------------
+	*/
+
+	/**
+	 *
+	 * Consignor Profile
+	 * @param string(required/default is 'default') $action = the action to be executed in the controller.
+	 * @param mixed() $mixed = the glossary id or sub action
+	 *
+	 */
+	public function consignor( $action = '', $mixed = null ) {
+
+		if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
+
+			$config = $this->_init_pagination_config();
+			$this->load->model( 'consignor/Consignor_model', 'cnsgnr_mdl' );
+
+			if ( $action === 'new' ) {
+
+				if ( is_null($mixed) ) {
+
+					$data['page_title'] = "Add Consignor";
+					$data['consignor_documents'] = $this->cnsgnr_mdl->get_accreditation_documents();
+					$this->load->view( 'header', $data );
+					$this->load->view( 'sidebar' );
+					$this->load->view( 'dashboard/consignor/Consignor_add_view' );
+					$this->load->view( 'footer' );
+
+				}
+
+			} else if ( $action === 'edit' ) {
+
+				if ( !is_null($mixed) ) {
+
+					$data['page_title'] = "Edit Consignor";
+					$data['consignor_documents'] = $this->cnsgnr_mdl->get_accreditation_documents();
+					$data['consignor_metadatas'] = $this->cnsgnr_mdl->get_current_values($mixed);
+					$this->load->view( 'header', $data );
+					$this->load->view( 'sidebar' );
+					$this->load->view( 'dashboard/consignor/Consignor_edit_view' );
+					$this->load->view( 'footer' );
+
+				}
+
+			} else if ( $action === 'delete' ) {
+
+				if ( is_numeric($mixed) && !is_null($mixed) && !empty($mixed) && 0 != $mixed ) {
+
+					if ( $this->cnsgnr_mdl->remove_restore_consignor($mixed) != false ) {
+						redirect( base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) ) );
+					}
+
+				}
+
+			} else if ( $action === 'restore' ) {
+
+				if ( is_numeric($mixed) && !is_null($mixed) && !empty($mixed) && 0 != $mixed ) {
+
+					if ( $this->cnsgnr_mdl->remove_restore_consignor($mixed, 'restore') != false ) {
+						redirect( base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) ) );
+					}
+
+				}
+
+			} else if ( $action === 'search' ) {
+
+				$search_key = $this->input->post( 'search_consignor' );
+				if ( $search_key === '*' ) {
+					$search_key = '';
+				}
+				$data[ 'search_key' ] = $search_key;
+
+				// pagination initialization
+				$this->load->library('pagination');
+
+				$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'page/' );
+				$config['total_rows'] = count( (array) $this->cnsgnr_mdl->get_all_consignors(array('key'	=>	$search_key)) );
+				$config['per_page'] = 10;
+				$config['num_links'] = 20;
+
+				$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
+
+				$data['consignor_documents'] = $this->cnsgnr_mdl->get_accreditation_documents();
+				$data['consignor_metadatas'] = $this->cnsgnr_mdl->get_all_consignors( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset, 'key'	=>	$search_key ) );
+				$data['config'] = $config;
+
+				$data['page_title'] = "Search Consignors";
+				$this->load->view( 'header', $data );
+				$this->load->view( 'sidebar' );
+				$this->load->view( 'dashboard/sub_navbar_view' );
+				$this->load->view( 'dashboard/consignor/Consignors_view' );
+				$this->load->view( 'footer' );
+
+			} else if ( $action === 'logs' || $action === 'logview' ) {
+
+				//! This is the logs view
+
+				// pagination
+				$this->load->library('pagination');
+
+				$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'page/' );
+				$config['total_rows'] = count( (array) $this->cnsgnr_mdl->get_activity_logs() );
+				$config['per_page'] = 10;
+				$config['num_links'] = 20;
+
+				$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
+
+				$data['log_metadata'] = $this->cnsgnr_mdl->get_activity_logs( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset ) );
+
+				$this->load->view( 'header', $data );
+				$this->load->view( 'sidebar' );
+				$this->load->view( 'dashboard/consignor/Consignor_log_view' );
+				$this->load->view( 'footer' );
+
+			} else if ( $action === 'viewlog' || $action === 'readlog' ) {
+
+				echo "<h1>It will be included soon.</h1>";
+
+			} else if ( $action === 'trash' ) {
+
+				// Trash / Recycle view
+				$data['page_title'] = 'Trash Bin';
+
+				// pagination
+				// i will initialize the pagination first
+				$this->load->library('pagination');
+
+				$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'page/' );
+				$config['total_rows'] = count( (array) $this->cnsgnr_mdl->get_all_consignors(null, false, false) );
+				$config['per_page'] = 2;
+				$config['num_links'] = 20;
+
+				$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
+
+				$data['consignor_metadata'] = $this->cnsgnr_mdl->get_all_consignors( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset ), FALSE, FALSE );
+
+				$this->load->view( 'header', $data );
+				$this->load->view( 'sidebar' );
+				$this->load->view( 'dashboard/consignor/Consignor_trash_view' );
+				$this->load->view( 'footer' );
+
+			} else {
+
+				// pagination initialization
+				$this->load->library('pagination');
+
+				$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'page/' );
+				$config['total_rows'] = count( (array) $this->cnsgnr_mdl->get_all_consignors() );
+				$config['per_page'] = 10;
+				$config['num_links'] = 20;
+
+				$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
+
+				$data['consignor_documents'] = $this->cnsgnr_mdl->get_accreditation_documents();
+				$data['consignor_metadatas'] = $this->cnsgnr_mdl->get_all_consignors( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset ) );
+				$data['config'] = $config;
+
+				$data['page_title'] = "List of Consignors";
+				$this->load->view( 'header', $data );
+				$this->load->view( 'sidebar' );
+				$this->load->view( 'dashboard/sub_navbar_view' );
+				$this->load->view( 'dashboard/consignor/Consignors_view' );
+				$this->load->view( 'footer' );
+
+			}
+
+		} else {
+
+			$this->_get_login_view();
+
+		}
+	}
+
+	/**
+	 *
+	 * Consignor Order Re-Order
+	 * @param string(required/default is 'index') $action = the action to be executed in the controller.
+	 * @param mixed() $mixed = the consignor id or sub action
+	 *
+	 */
+
+	public function consignmentorderreorder( $action = 'index', $mixed = null ) {
+
+		if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
+
+			$config = $this->_init_pagination_config();
+			$this->load->model( 'glossary/Glossary_model', 'glsrry_mdl' );
+
+			if ( $action === 'new' ) {
+
+			} else {
+
+				// the default page
+				$data['page_title'] = 'Glossary';
+				$data['nav_title'] = 'Medicine/Supply List';
+				$this->load->view( 'header', $data );
+				$this->load->view( 'sidebar' );
+				$this->load->view( 'dashboard/sub_navbar_view' );
+				// $this->load->view( 'dashboard/glossary/Glossary_view' );
+				$this->load->view( 'footer' );
+
+			}
+
+		} else {
+			$this->_get_login_view();
+		}
+
+	}
+
+	/**
+	 *
+	 * Consignor Offer
+	 * @param string(required/default is 'index') $action = the action to be executed in the controller.
+	 * @param mixed() $mixed = the consignor id or sub action
+	 *
+	 */
+
+	public function consignmentoffer( $action = 'index', $mixed = null ) {
+
+		if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
+
+			$config = $this->_init_pagination_config();
+			$this->load->model( 'consignor/Consignment_Offer_model', 'cnsgnr_offr_mdl' );
+
+			if ( $action === 'new' ) {
+
+				if ( is_null($mixed) ) {
+
+					$data['page_title'] = "Add Consignment Offer";
+					$this->load->view( 'header', $data );
+					$this->load->view( 'sidebar' );
+					$this->load->view( 'dashboard/consignmentoffer/Consignment_Offer_add_view' );
+					$this->load->view( 'footer' );
+
+				}
+
+			} else {
+
+				// The default page...
+
+
+			}
+
+		} else {
+			$this->_get_login_view();
+		}
+
+	}
+
+	/** ----------------------------------------------------------------------------------
 	* |										Glossary Group 								 |
 	* ------------------------------------------------------------------------------------
 	*/
 
-	/** -------------------------------------------------------------------------
-	* |							Glossary Controller 							|
-	* ---------------------------------------------------------------------------
+	/** ----------------------------------------------------------------------------------
+	* |							Glossary Controller 									 |
+	* ------------------------------------------------------------------------------------
 	*/
 
-	public function glossary( $action = 'default', $glossary_id = null ) {
+	public function glossary( $action = 'index', $glossary_id = null ) {
 
 		if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
 
@@ -93,6 +346,69 @@ class Administrator extends CI_Controller {
 
 				}
 
+			} else if ( $action === 'search' ) {
+
+				// search action
+				// This is the display of list of brands
+				$data['page_title'] = 'Search';
+				$data['nav_title'] = 'Brand List';
+				$data['add_new_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'new-brand' );
+				$data['admin_pages'] = $this->admin_pages;
+
+				$search_key = $this->input->post( 'search_glossary' );
+				if ( $search_key === '*' ) {
+					$search_key = '';
+				}
+				$data[ 'search_key' ] = $search_key;
+
+				// pagination
+				$this->load->library('pagination');
+
+				$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) );
+				$config['total_rows'] = count( (array) $this->glsrry_mdl->get_all_glossary() );
+				$config['per_page'] = 10;
+				$config['num_links'] = 20;
+
+				$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
+
+				$data['glossary_metadata'] = $this->glsrry_mdl->get_all_glossary( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset, 'key'	=>	$search_key ) );
+				$data['config'] = $config;
+
+				$this->load->view( 'header', $data );
+				$this->load->view( 'sidebar' );
+				$this->load->view( 'dashboard/sub_navbar_view' );
+				$this->load->view( 'dashboard/glossary/Glossary_view' );
+				$this->load->view( 'footer' );
+
+				// end search
+
+			} else if ( $action === 'logs' ) {
+
+				// log action
+				// This is the logs view
+
+				// pagination
+				// i will initialize the pagination first
+				$this->load->library('pagination');
+
+				$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . $this->uri->slash_rsegment(3) );
+				$config['total_rows'] = count( (array) $this->glsrry_mdl->get_activity_logs() );
+				$config['per_page'] = 10;
+				$config['num_links'] = 20;
+
+				$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
+
+				$data['log_metadata'] = $this->glsrry_mdl->get_activity_logs( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset ) );
+
+				$data['config'] = $config;
+
+				$this->load->view( 'header', $data );
+				$this->load->view( 'sidebar' );
+				$this->load->view( 'dashboard/glossary/Glossary_log_view' );
+				$this->load->view( 'footer' );
+
+				// end log
+
 			} else if ( $action === 'delete' ) {
 
 				// delete action
@@ -108,6 +424,48 @@ class Administrator extends CI_Controller {
 					
 				}
 
+			} else if ( $action === 'restore' ) {
+
+				// delete action
+				if ( !is_null( $glossary_id ) || !empty( $glossary_id ) ) {
+
+					$exec = $this->glsrry_mdl->remove_restore_glossary( $glossary_id, 'restore' );
+					if ( $exec ) {
+
+						$redirect_url = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) );
+						redirect( $redirect_url );
+
+					}
+					
+				}
+
+			} else if ( $action === 'logview' ) {
+
+				
+
+			} else if ( $action === 'trash' ) {
+
+				// Trash / Recycle view
+				$data['page_title'] = 'Trash Bin';
+
+				// pagination
+				// i will initialize the pagination first
+				$this->load->library('pagination');
+
+				$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'page/' );
+				$config['total_rows'] = count( (array) $this->glsrry_mdl->get_all_glossary() );
+				$config['per_page'] = 2;
+				$config['num_links'] = 20;
+
+				$offset = $this->uri->segment(4) != null ? $this->uri->segment(4) : 0;
+
+				$data['glosary_metadata'] = $this->glsrry_mdl->get_all_glossary( array( 'limit'	=>	$config['per_page'], 'offset'	=>	$offset ), FALSE, FALSE );
+
+				$this->load->view( 'header', $data );
+				$this->load->view( 'sidebar' );
+				$this->load->view( 'dashboard/glossary/Glossary_trash_view' );
+				$this->load->view( 'footer' );
+
 			} else {
 
 				// the default page
@@ -115,7 +473,6 @@ class Administrator extends CI_Controller {
 				$data['nav_title'] = 'Medicine/Supply List';
 
 				// pagination
-				// i will initialize the pagination first
 				$this->load->library('pagination');
 
 				$config['base_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'page/' );
@@ -136,7 +493,9 @@ class Administrator extends CI_Controller {
 
 			}
 			
-		}	
+		} else {
+			$this->_get_login_view();
+		}
 
 	}
 
@@ -145,7 +504,7 @@ class Administrator extends CI_Controller {
 	* ---------------------------------------------------------------------------
 	*/
 
-	public function brand( $action = 'default', $brand_id = null ) {
+	public function brand( $action = 'index', $brand_id = null ) {
 
 		if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
 
@@ -215,9 +574,6 @@ class Administrator extends CI_Controller {
 			} else if ( $action === 'logs' || $action === 'logview' ) {
 
 				// This is the logs view
-				$data['page_title'] = 'Brands';
-				$data['nav_title'] = 'Brand List';
-				$data['add_new_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'new-brand' );
 
 				// pagination
 				// i will initialize the pagination first
@@ -319,6 +675,8 @@ class Administrator extends CI_Controller {
 
 			}
 
+		} else {
+			$this->_get_login_view();
 		}
 
 	}
@@ -328,7 +686,7 @@ class Administrator extends CI_Controller {
 	* ---------------------------------------------------------------------------
 	*/
 
-	public function disease( $action = 'default', $disease_id = null ) {
+	public function disease( $action = 'index', $disease_id = null ) {
 
 		if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
 
@@ -501,14 +859,16 @@ class Administrator extends CI_Controller {
 
 			}
 
+		} else {
+			$this->_get_login_view();
 		}
 
 	}
 
 
-	/** --------------------------------------------------------------------------------------
-	* |										End Glossary Group 								 |
-	* ----------------------------------------------------------------------------------------
+	/** -----------------------------------------------------------------------------------------
+	* |										End Glossary Group 								 	|
+	* -------------------------------------------------------------------------------------------
 	*/
 
 
@@ -520,12 +880,12 @@ class Administrator extends CI_Controller {
 	 */
 
 
-	/** ----------------------------------------------------------------------
-	* |							Users Group 								 |
-	* ------------------------------------------------------------------------
+	/** -----------------------------------------------------------------------------------------
+	* |											Users Group 								 	|
+	* -------------------------------------------------------------------------------------------
 	*/
 
-	public function users( $action = 'default', $user_id = null ) {
+	public function users( $action = 'index', $user_id = null ) {
 
 		if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
 
@@ -669,7 +1029,7 @@ class Administrator extends CI_Controller {
 
 			$this->_get_login_view();
 
-		}	
+		}
 
 	}
 
@@ -677,7 +1037,7 @@ class Administrator extends CI_Controller {
 	* |							Roles Group 								 |
 	* ------------------------------------------------------------------------
 	*/			
-	public function roles( $action = 'default', $role_id = null ) {
+	public function roles( $action = 'index', $role_id = null ) {
 
 		if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
 
@@ -847,7 +1207,7 @@ class Administrator extends CI_Controller {
 	}
 
 
-	// -------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------------------
 
 	private function _register_pages() {
 

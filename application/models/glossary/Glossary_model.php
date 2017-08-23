@@ -114,7 +114,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 						'item_edited_by'			=>	$args['item_created_by']
 					);
 
-					$json_data = '{ "meta_datas" : { "item_type" : "'. $args['item_type'] .'", "item_name" : "'. $args['item_name'] .'", "item_disinfects" : "'. $args['item_disinfects_disease_id'] .'", "item_description" : "'. $args['item_description'] .'", "item_created_by" : "'. $args['item_created_by'] .'", }, "date_operated" : "'. $this->current_timestamp .'" }';
+					$json_data = '{ "meta_datas" : { "item_type" : "'. $args['item_type'] .'", "item_name" : "'. $args['item_name'] .'", "item_disinfects" : "'. $args['item_disinfects_disease_id'] .'", "item_description" : "'. $args['item_description'] .'", "item_created_by" : "'. $args['item_created_by'] .'" }, "date_operated" : "'. $this->current_timestamp .'" }';
 
 					$meta_key_id = $this->ext_meta->get_meta_key_info( '_create_glossary_item' )->key_id;
 					$query = $this->db->insert( 'tbl_items', $array_datas );
@@ -260,6 +260,76 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 			}
 
 		}
+
+		/**
+		 * ---------------------------------------------------------------------------
+		 * The list of transaction logs
+		 * @param array $parameter_query - the array parameter for the query
+		 * @return array/boolean - if it has data to fetch then the return value shoul be an array of datas with it's assigned array key. Otherwise it should return false.
+		 * ---------------------------------------------------------------------------
+		 */
+		public function get_activity_logs( $parameter_query = null ) {
+
+			$query = $this->db->get( 'tbl_itemmeta' );
+
+			if ( null != $parameter_query || '' != $parameter_query ) {
+				
+				$this->db->order_by( "meta_date_created", "desc" );
+				$query = $this->db->get( 'tbl_itemmeta' );
+
+				if ( is_array( $parameter_query ) ) {
+					
+					if ( array_key_exists( 'limit', $parameter_query ) && array_key_exists( 'offset', $parameter_query ) ) {
+
+						$query = $this->db->get( 'tbl_itemmeta', $parameter_query['limit'], $parameter_query['offset'] );
+
+					}
+
+				}
+
+			}
+
+			if ( $query ) {
+
+				if ( $query->num_rows() > 0 ) {
+
+					$returnDatas = array();
+
+					foreach ( $query->result() as $row ) {
+
+						$meta_value = $this->encryption->decrypt( $row->meta_value );
+						$meta_key_id = $row->meta_key_id;
+						$meta_key = $this->ext_meta->get_meta_key_info( array( 'key_id' => $meta_key_id ) )->key_name;
+						if ( $meta_key == '_delete_glossary_item' || $meta_key == '_restore_glossary_item' ) {
+
+							$meta_value = $row->meta_value;
+
+						}
+						
+						$objectDatas = (object) array(
+							'meta_id'			=>	$row->meta_id,
+							'meta_key'			=>	$meta_key,
+							'meta_item_id'		=>	$row->meta_item_id,
+							'meta_key_id'		=>	$meta_key_id,
+							'meta_value'		=>	$meta_value,
+							'meta_date_created'	=>	$row->meta_date_created
+						);
+
+						array_push( $returnDatas , $objectDatas );
+
+					}
+
+					return $returnDatas;
+				}
+				return false;
+
+			}
+
+			return false;	
+
+		}
+
+		// end
 
 	}
 ?>	

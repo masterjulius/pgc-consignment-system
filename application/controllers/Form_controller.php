@@ -63,7 +63,7 @@ class Form_controller extends CI_Controller {
 	        		if ( $this->db->insert( 'tbl_usermeta', $user_meta ) ) {
 
 	        			$this->user_security->register_session_data( $user_result, 'cnsgnmnt_sess_prefix_' );
-		        		$target_url = !empty($this->input->post('target_url')) ? $this->input->post('target_url') : '/Administrator/';
+		        		$target_url = !empty($this->input->post('target_url')) ? $this->input->post('target_url') : '/administrator/';
 		        		redirect( $target_url );
 
 	        		} else {

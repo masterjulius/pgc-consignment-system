@@ -8,7 +8,7 @@ $arr_datas = (array) $glossary_metadata;
 
 		<div class="col l12 table-data-div">
 
-		<?php if ( count( $arr_datas ) > 0 || $glossary_metadata != false ): ?>
+		<?php if ( $glossary_metadata != false ): ?>
 			
 			<table class="striped responsive-table">
 				
