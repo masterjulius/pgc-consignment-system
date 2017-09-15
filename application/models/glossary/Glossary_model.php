@@ -94,11 +94,26 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 						$meta_key_id = $this->ext_meta->get_meta_key_info( '_edit_glossary_item' )->key_id;
 						$array_datas['item_id'] = $args['item_id'];
+
 						$this->db->trans_start();
 						$query = $this->db->update( 'tbl_items', $array_datas, array( 'item_id' => $args['item_id'] ) );
+
+						// action
 						if ( $query ) {
-							$this->db->trans_complete();
-							return $args['item_id'];
+
+							$json_data = $this->encryption->encrypt( $json_data );
+
+							$meta_datas = array(
+								'meta_item_id'	=>	$args['item_id'],
+								'meta_key_id'	=>	$meta_key_id,
+								'meta_value'	=>	$json_data,
+							);
+
+							if ( $this->db->insert( 'tbl_itemmeta', $meta_datas ) ) {
+								$this->db->trans_complete();
+								return $args['item_id'];
+							}
+
 						}
 						
 					}
@@ -117,6 +132,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 					$json_data = '{ "meta_datas" : { "item_type" : "'. $args['item_type'] .'", "item_name" : "'. $args['item_name'] .'", "item_disinfects" : "'. $args['item_disinfects_disease_id'] .'", "item_description" : "'. $args['item_description'] .'", "item_created_by" : "'. $args['item_created_by'] .'" }, "date_operated" : "'. $this->current_timestamp .'" }';
 
 					$meta_key_id = $this->ext_meta->get_meta_key_info( '_create_glossary_item' )->key_id;
+
+					$this->db->trans_start();
 					$query = $this->db->insert( 'tbl_items', $array_datas );
 
 					//action
@@ -146,6 +163,36 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 			}	
 			
 		}
+
+		// Batch Save
+		public function batch_save_glossary($datas) {
+
+			if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
+
+				if ( is_array($datas) && !empty($datas) ) {
+					foreach ($datas as $value) {
+						
+						if (	!$this._data_exists(array('item_name'=>$value))	) {
+							
+							// if item does not exists
+							
+
+						}	else	{
+
+							// if item already exists
+
+						}
+
+					}
+
+					$this->db->trans_start();
+
+				}
+
+			}
+
+		}
+		/** End Batch Save */
 
 		// delete glossary / item
 		public function remove_restore_glossary( $glossary_id, $action = 'delete' ) {
@@ -270,66 +317,127 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 		 */
 		public function get_activity_logs( $parameter_query = null ) {
 
-			$query = $this->db->get( 'tbl_itemmeta' );
-
-			if ( null != $parameter_query || '' != $parameter_query ) {
-				
-				$this->db->order_by( "meta_date_created", "desc" );
+			if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
 				$query = $this->db->get( 'tbl_itemmeta' );
 
-				if ( is_array( $parameter_query ) ) {
+				if ( null != $parameter_query || '' != $parameter_query ) {
 					
-					if ( array_key_exists( 'limit', $parameter_query ) && array_key_exists( 'offset', $parameter_query ) ) {
+					$this->db->order_by( "meta_date_created", "desc" );
+					$query = $this->db->get( 'tbl_itemmeta' );
 
-						$query = $this->db->get( 'tbl_itemmeta', $parameter_query['limit'], $parameter_query['offset'] );
+					if ( is_array( $parameter_query ) ) {
+						
+						if ( array_key_exists( 'limit', $parameter_query ) && array_key_exists( 'offset', $parameter_query ) ) {
+
+							$query = $this->db->get( 'tbl_itemmeta', $parameter_query['limit'], $parameter_query['offset'] );
+
+						}
 
 					}
 
 				}
 
-			}
+				if ( $query ) {
 
-			if ( $query ) {
+					if ( $query->num_rows() > 0 ) {
 
-				if ( $query->num_rows() > 0 ) {
+						$returnDatas = array();
 
-					$returnDatas = array();
+						foreach ( $query->result() as $row ) {
 
-					foreach ( $query->result() as $row ) {
+							$meta_value = $this->encryption->decrypt( $row->meta_value );
+							$meta_key_id = $row->meta_key_id;
+							$meta_key = $this->ext_meta->get_meta_key_info( array( 'key_id' => $meta_key_id ) )->key_name;
+							if ( $meta_key == '_delete_glossary_item' || $meta_key == '_restore_glossary_item' ) {
 
-						$meta_value = $this->encryption->decrypt( $row->meta_value );
-						$meta_key_id = $row->meta_key_id;
-						$meta_key = $this->ext_meta->get_meta_key_info( array( 'key_id' => $meta_key_id ) )->key_name;
-						if ( $meta_key == '_delete_glossary_item' || $meta_key == '_restore_glossary_item' ) {
+								$meta_value = $row->meta_value;
 
-							$meta_value = $row->meta_value;
+							}
+							
+							$objectDatas = (object) array(
+								'meta_id'			=>	$row->meta_id,
+								'meta_key'			=>	$meta_key,
+								'meta_item_id'		=>	$row->meta_item_id,
+								'meta_key_id'		=>	$meta_key_id,
+								'meta_value'		=>	$meta_value,
+								'meta_date_created'	=>	$row->meta_date_created
+							);
+
+							array_push( $returnDatas , $objectDatas );
 
 						}
-						
-						$objectDatas = (object) array(
-							'meta_id'			=>	$row->meta_id,
-							'meta_key'			=>	$meta_key,
-							'meta_item_id'		=>	$row->meta_item_id,
-							'meta_key_id'		=>	$meta_key_id,
-							'meta_value'		=>	$meta_value,
-							'meta_date_created'	=>	$row->meta_date_created
-						);
 
-						array_push( $returnDatas , $objectDatas );
-
+						return $returnDatas;
 					}
+					return false;
 
-					return $returnDatas;
+				}
+
+				return false;
+
+			}		
+
+		}
+
+		// end
+
+		/**
+		 * --------------------------------------------------------------------------------------------
+		 * PRIVATE FUNCTIONALITIES
+		 */
+
+		/**
+		 * Checking if data exists
+		 */
+		private function _data_exists($data,$table) {
+
+			if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
+
+				if (is_array($data) && !empty($data)){
+					foreach ($data as $key => $value) {
+						$this->db->where($key,$value);
+					}
+					$query = $this->db->get($table);
+					if ($query->num_rows() > 0){
+					    return true;
+					}
 				}
 				return false;
 
 			}
 
-			return false;	
+		}
+		/**
+		 * End of checking if data exists
+		 */
+
+		/**
+		 * Getting the data values
+		 */
+		private function _get_data_info($columns,$dataKeys,$tableName) {
+
+			if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
+
+				if (is_string($columns)) {
+					$this->db->select($columns);
+					foreach ($dataKeys as $key => $value) {
+						$this->db->where($key,$value);
+					}
+					$query = $this->db->get($tableName);
+					if ( $query ) {
+						if ( $query->num_rows() > 0 ){
+							while($row = $query->result()) {
+								$returnValue[] = $row;
+							}
+							return $returnValue;
+						}
+					}
+					return false;
+				}
+
+			}
 
 		}
-
-		// end
 
 	}
 ?>	

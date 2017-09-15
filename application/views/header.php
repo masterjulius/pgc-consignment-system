@@ -47,5 +47,9 @@ $materialize_URL = base_url( '/materialize' );
 	echo meta($meta);
 ?>
 	<title><?php echo $the_title = isset($page_title) ? $page_title : 'Consignment System'; ?></title>
+    
+    <script src="<?php echo $materialize_URL; ?>/js/jquery-3.2.1.min.js" type="text/javascript"></script>
+    <script src="<?php echo $materialize_URL; ?>/js/materialize.min.js" type="text/javascript"></script>
+    <script src="<?php echo $materialize_URL; ?>/js/index.js" type="text/javascript"></script>
 </head>
 <body class="<?php echo $this->page_actions->page_body_class(); ?>">

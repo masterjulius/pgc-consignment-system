@@ -12,6 +12,10 @@ $add_url = isset( $add_new_url ) ? $add_new_url : base_url( $this->uri->slash_rs
 				<a href=""><?php echo ucwords( $navigation_title ); ?></a>
 				<a href="<?php echo $add_url; ?>" class="btn">Add New</a>
 
+			<?php if ( isset( $import_url ) ): ?>
+				<a href="<?php echo $import_url; ?>" class="btn pink">Import</a>
+			<?php endif; ?>	
+
 				<ul id="nav-mobile" class="right hide-on-med-and-down">
 					<li>
 					<?php
@@ -21,6 +25,7 @@ $add_url = isset( $add_new_url ) ? $add_new_url : base_url( $this->uri->slash_rs
 					<?php	
 						echo form_close();
 					?>
+
 					<li>
 						<a href="<?php echo base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'logs/' ); ?>"><i class="left icon-cnsgnmnt-report"></i> Logs</a>
 					</li>	

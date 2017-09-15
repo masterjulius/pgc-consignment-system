@@ -26,7 +26,7 @@ class Administrator extends CI_Controller {
 		if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
 
 			$controller = ucwords( $this->uri->segment(1) );
-			$data['page_title'] = $controller;
+			$data['page_title'] = "Admin &mdash; Dashboard";
 			$this->load->view( 'header', $data );
 			$this->load->view( 'sidebar' );
 			$this->load->view( 'dashboard/Dashboard_view' );
@@ -293,6 +293,51 @@ class Administrator extends CI_Controller {
 
 	}
 
+	/** --------------------------------------------------------------------------------------
+	* |										Inventory Group 								 |
+	* ----------------------------------------------------------------------------------------
+	*/
+
+	/**
+	 *
+	 * Inventory
+	 * @param string(required/default is 'index') $action = the action to be executed in the controller.
+	 * @param mixed() $mixed = the consignor id or sub action
+	 *
+	 */
+	public function inventory( $action = 'index', $mixed = null ) {
+
+		if ( $this->user_security->is_user_logged_in( 'cnsgnmnt_sess_prefix_' ) ) {
+
+			$config = $this->_init_pagination_config();
+			if ( $action === 'new' ) {
+
+
+
+			} else if ( $action === 'import' ) {
+
+				
+
+			} else {
+				// This is the default action
+				$data['page_title'] = 'Inventory &mdash; List';
+				$data['import_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'import/' );
+				$this->load->view( 'header', $data );
+				$this->load->view( 'sidebar' );
+				$this->load->view( 'dashboard/sub_navbar_view' );
+				$this->load->view( 'dashboard/inventory/Inventory_view' );
+				$this->load->view( 'footer' );
+
+			}
+
+		} else {
+			$this->_get_login_view();
+		}
+
+	}
+
+
+
 	/** ----------------------------------------------------------------------------------
 	* |										Glossary Group 								 |
 	* ------------------------------------------------------------------------------------
@@ -353,6 +398,7 @@ class Administrator extends CI_Controller {
 				$data['page_title'] = 'Search';
 				$data['nav_title'] = 'Brand List';
 				$data['add_new_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'new-brand' );
+				$data['import_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'import/' );
 				$data['admin_pages'] = $this->admin_pages;
 
 				$search_key = $this->input->post( 'search_glossary' );
@@ -466,11 +512,22 @@ class Administrator extends CI_Controller {
 				$this->load->view( 'dashboard/glossary/Glossary_trash_view' );
 				$this->load->view( 'footer' );
 
+			} else if ( $action === 'import' ) {
+
+				// import page
+				$data['page_title'] = 'Glossary &mdash; Import';
+				$data['import_allow_ext'] = array('.xls', '.xlsx');
+				$this->load->view( 'header', $data );
+				// $this->load->view( 'sidebar' );
+				$this->load->view( 'dashboard/glossary/Glossary_import' );
+				$this->load->view( 'footer' );
+
 			} else {
 
 				// the default page
 				$data['page_title'] = 'Glossary';
 				$data['nav_title'] = 'Medicine/Supply List';
+				$data['import_url'] = base_url( $this->uri->slash_rsegment(1) . $this->uri->slash_rsegment(2) . 'import/' );
 
 				// pagination
 				$this->load->library('pagination');
